@@ -141,7 +141,7 @@ get_commandline_options($data,									# parse the command line options and retu
 	['verbose!',		'',				'bool',		0],			# exclamation point means it's a negatable option, i.e. --noverbose gets 0 value
 	['help',			'',				'bool',		0],
 	['url',				'',				'str',		0],
-	['recursive!',		'',				'num',		0],
+	['recursive',		'',				'num',		0],
 	['format',			'',				'str',		0],
 	['file',			'',				'str',		0]);
 
