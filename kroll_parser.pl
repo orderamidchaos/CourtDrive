@@ -109,7 +109,7 @@ use Fcntl 				qw(:DEFAULT :flock);					# file locking constants
 use IO::Zlib;													# work with gz files
 use List::Util			qw(reduce);								# sum values within complex data structures
 use Hash::Merge 		qw(merge);								# deep merge two hashes
-use JSON:XS				qw(decode_json);						# decode JSON objects into Perl objects
+use JSON::XS			qw(decode_json);						# decode JSON objects into Perl objects
 
 use constant PWD => dirname(abs_path __FILE__);					# program executable lives in PWD
 use lib PWD;													# add our module directory to @INC (CourtDrive modules should live in PWD/CourtDrive)
@@ -314,5 +314,3 @@ sub get_claim_details {											# get_claims subroutine scrapes the given URL 
 					//isx) {											# consume the HTML so eventually the while loop exits
 				$amount->{$1} = $2; }
 			push @{$claim->{amounts}}, $amount if is_hash($amount); }}}
-
-
