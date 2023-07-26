@@ -22,7 +22,8 @@ CourtDrive Kroll Web Scraper
 
 Output raw text:
 
-	perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-LoadClaimData --recursive=100
+	perl kroll_parser.pl --method=GET --url=https://cases.ra.kroll.com/seadrillpartners/Home-ClaimInfo --recursive=100 --debug=3
+	perl kroll_parser.pl --method=POST --url=https://cases.ra.kroll.com/seadrillpartners/Home-LoadClaimData --recursive=100 --debug=3
 
 Output a JSON file:
 
@@ -145,6 +146,7 @@ get_commandline_options($data,									# parse the command line options and retu
 	['verbose!',		'',				'bool',		0],			# exclamation point means it's a negatable option, i.e. --noverbose gets 0 value
 	['help',			'',				'bool',		0],
 	['url',				'',				'str',		0],
+	['method',			'',				'str',		0],
 	['recursive',		'',				'num',		0],
 	['format',			'',				'str',		0],
 	['file',			'',				'str',		0]);
@@ -167,6 +169,7 @@ if ($data->{file}) {
 	debug($data, "Merged data object: ".Dumper($data), 1); }
 else {
 	my $start_time = new Benchmark;										# start timing the entire scraping process
+	$data->{method} = "GET" unless $data->{method};						# default to GET if no method passed in
 	$data->{url} = CONF->{urls}->[0] unless $data->{url};				# default to the first configured URL if none passed in
 	$data->{items}->{claims} = get_claims();							# parse the url for claims and return the results to $data->{items}
 	my $end_time = new Benchmark;										# calculate total running time for scraping URLs and parsing
@@ -189,6 +192,7 @@ if ($data->{format} eq 'xlsx')	{ binmode STDOUT; say convert_xlsx($data->{items}
 ############################
 
 sub get_claims {												# get_claims subroutine scrapes the given URL for claims
+	my $method = shift || $data->{method} || return "";			# pass in the HTTP method for scraping or get it from $data
 	my $url = shift || $data->{url} || return "";				# pass in the URL to scrape or get it from $data
 	my $lvl = coerce(shift, "num", 1);							# start counting depth of recursion in order to impose the configured limits
 	my $max = coerce($data->{recursive}, "num", CONF->{thresholds}->{MAX_LINKS});
@@ -201,7 +205,7 @@ sub get_claims {												# get_claims subroutine scrapes the given URL for cl
 	if ($lvl > $max) { debug($data, "Reached maximum recursion depth = ".$max, 1); return $claims; }	# only follow down to the depth of the recursion specified
 
 	# initialize the user agent and fetch the page
-	my $agent = CourtDrive::Agent->new(CONF, $url, complex_to_flat($params), $data->{debug_level}) or errlog($data, CourtDrive::Agent->error);
+	my $agent = CourtDrive::Agent->new(CONF, $method, $url, complex_to_flat($params), $data->{debug_level}) or errlog($data, CourtDrive::Agent->error);
 	if ($agent->has_error) { errlog($data, "web client failed: ".$agent->error); } else { debug($data, "initialized web agent", 2); }
 	debug($data, $agent->report, 2) if $data->{debug_level} and $agent->report;
 
@@ -232,14 +236,15 @@ sub get_claims {												# get_claims subroutine scrapes the given URL for cl
 						my $claim_id = $1; $value = $2;
 							my $claim_url = $agent->protocol . $agent->domain . $agent->path . "/Home-CreditorDetailsForClaim";
 							my $claim_params = "id=".encode_url($claim_id);
-							get_claim_details($claim, $claim_url, $claim_params); }
+							my $claim_method = "POST";
+							get_claim_details($claim, $claim_method, $claim_url, $claim_params); }
 				$claim->{$label} = $value; }
 			push @{$claims}, $claim unless is_empty($claim); }
 
 		if ($lvl < $total_pages and $lvl < $max) {		# iterate through the pages until completed
 				$url = $agent->protocol . $agent->domain . $agent->path . "/Home-LoadClaimData";
 				debug($data, "$lvl: following: $url to page ".($lvl+1)." (current level $lvl, authorized recursion $max)", 2);
-				my $deeper_claims = get_claims($url, $lvl+1);
+				my $deeper_claims = get_claims($method, $url, $lvl+1);
 				$claims = $merge->merge($claims, $deeper_claims) unless is_empty($deeper_claims);
 		}}
 	elsif ($agent->content_type =~ /application\/json/i and !$agent->has_error) {	# parse JSON output
@@ -260,14 +265,15 @@ sub get_claims {												# get_claims subroutine scrapes the given URL for cl
 							my $claim_id = $1; $value = $2;
 							my $claim_url = $agent->protocol . $agent->domain . $agent->path . "/Home-CreditorDetailsForClaim";
 							my $claim_params = "id=".encode_url($claim_id);
-							get_claim_details($claim, $claim_url, $claim_params); }
+							my $claim_method = "POST";
+							get_claim_details($claim, $claim_method, $claim_url, $claim_params); }
 					$claim->{$label} = $value; }
 				else { $claim->{$column} = $claim_row->{$column}}}
 			push @{$claims}, $claim unless is_empty($claim); }
 
 		if ($lvl < $total_pages and $lvl < $max) {				# iterate through the pages until completed
 				debug($data, "$lvl: following: $url to page ".($lvl+1)." (current level $lvl, authorized recursion $max)", 2);
-				my $deeper_claims = get_claims($url, $lvl+1);
+				my $deeper_claims = get_claims($method, $url, $lvl+1);
 				$claims = $merge->merge($claims, $deeper_claims) unless is_empty($deeper_claims);
 		}}
 	else { errlog($data, "URL $url could not be parsed."); }
@@ -281,11 +287,12 @@ sub get_claims {												# get_claims subroutine scrapes the given URL for cl
 
 sub get_claim_details {											# get_claims subroutine scrapes the given URL for claims
 	my $claim = shift;											# data structure for this claim
+	my $method = shift;											# HTTP method for claim details
 	my $url = shift;											# URL for the claim details
 	my $params = shift;											# POST parameters
 
 	# initialize the user agent and fetch the page
-	my $agent = CourtDrive::Agent->new(CONF, $url, $params, $data->{debug_level}) or errlog($data, CourtDrive::Agent->error);
+	my $agent = CourtDrive::Agent->new(CONF, $method, $url, $params, $data->{debug_level}) or errlog($data, CourtDrive::Agent->error);
 	if ($agent->has_error) { errlog($data, "web client failed: ".$agent->error); } else { debug($data, "initialized web agent", 2); }
 	debug($data, $agent->report, 2) if $data->{debug_level} and $agent->report;
 

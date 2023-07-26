@@ -45,6 +45,7 @@ sub new {
 	my $class	= ref($this) || $this || "CourtDrive::Agent";
 
 	my $conf	= check_conf(shift);
+	my $method	= shift;
 	my $url		= shift;
 	my $params	= shift;
 	my $debug	= shift;
@@ -57,7 +58,7 @@ sub new {
 		max_size	=> $conf->{thresholds}->{RESPONSE_LIMIT} || 1048576,		# response size limit, bytes, defined in conf file
 		timeout		=> $conf->{timeouts}->{REQUEST}/1000 || 12,					# request timeout limit, seconds, defined in conf file
 		debug		=> $debug || 0,												# whether or not to emit debug output
-		request_method	=> "POST",
+		request_method	=> $method,
 		protocol	=> "",
 		domain		=> "",
 		path		=> "",
@@ -163,12 +164,12 @@ sub _fetch_page {
 			$self->{input} =~ s/(?:^|&)(.*?)=(.*?)(?=&|$)/$1 => "$2", /gis; $self->{input} =~ s/^(.*?), $/$1/is;
 			my $filename = ($self->{upload} =~ /^(?:.+?)\/([^\/]+?)$/)? $1 : $self->{upload};
 			$request = eval(qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input} ]~) if $self->{upload};
-			$self->{report} .= qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input}] if $self->{upload}\n\n~; }}
-	else { return $self->error(405,"Unknown request method: " . $self->{request_method}); }
+			$self->{report} .= qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input}] if $self->{upload}\n\n~; }
 
-	if ($self->{conf}->{headers}) {										# set custom request headers
-		foreach my $header (keys %{$self->{conf}->{headers}}) {
-			$request->headers->header($header => $self->{conf}->{headers}->{$header}); }}
+		if ($self->{conf}->{headers}) {										# set custom request headers
+			foreach my $header (keys %{$self->{conf}->{headers}}) {
+				$request->headers->header($header => $self->{conf}->{headers}->{$header}); }}}
+	else { return $self->error(405,"Unknown request method: " . $self->{request_method}); }
 
 	# if we got an Authorization header, the client is back at it after being
 	# prompted for a password so we insert the header as is in the request.
