@@ -27,7 +27,7 @@ use Excel::Writer::XLSX;
 use Try::Tiny;
 
 # load CourtDrive perl modules and import symbols into the namespace
-use CourtDrive::Debug 	qw(debug errlog is_array is_hash);
+use CourtDrive::Debug 	qw(debug errlog is_array is_hash is_scalar is_null is_empty);
 
 # export public subroutine symbols
 use Exporter			qw(import);
