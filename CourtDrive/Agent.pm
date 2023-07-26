@@ -140,7 +140,7 @@ sub _fetch_page {
 	$ua->default_header('Accept-Ranges' => "none");						# prevent chunking
 
 	if ($self->{conf}->{headers}) {										# set custom request headers
-		foreach $header (keys %{$self->{conf}->{headers}}) {
+		foreach my $header (keys %{$self->{conf}->{headers}}) {
 			$ua->header($header, $self->{conf}->{headers}->{$header}); }}
 
 	# debug info
