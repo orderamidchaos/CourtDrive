@@ -84,11 +84,7 @@ sub num_or_undef {										# replaces a string with the number value of digits 
 
 sub is_zero { my ($x) = @_; return $x == 0? 1 : 0; }
 
-sub num_or_zero {										# replaces a string with the number value of digits it contains or zero if none
-	my $x = num_or_undef(@_);							# truncates it to the length indicated by the optional second value passed in
-	return defined $x? $x : 0+0; }
-
-sub dec_or_undef{										# replaces a string with the best representation of a decimal number it contains, adding padding if necessary
+sub dec_or_undef {										# replaces a string with the best representation of a decimal number it contains, adding padding if necessary
 	my ($x, $len1, $len2, $round) = @_;					# truncates both before and after the decimal point to the lengths indicated by the 2nd and 3rd values passed in
 	return undef unless defined $x and $x =~ /\d/;
 	my $mult = ($x =~ /^\s*?-/)? -1 : 1;
@@ -107,17 +103,6 @@ sub dec_or_undef{										# replaces a string with the best representation of a
 		(($x1 or is_zero($x1)) and !$x2 and !is_zero($x2))? $x1*$mult*1.0 :
 		(!$x1 and !is_zero($x1) and ($x2 or is_zero($x2)))? $x2*$mult*1.0 :
 		($x or is_zero($x))? $x*$mult*1.0 : undef; }
-
-sub dec_or_zero { my $x = dec_or_undef(@_);				# replaces a string with the best representation of a decimal number it contains, adding padding if necessary, or zero if none
-	return defined $x? $x : 0.0+0.0; }
-
-sub round { my ($n, $d) = @_;							# d is positive to represent number of decimal places; negative to indicate rounding of the integer
-	return undef unless defined $n;
-	my $sign = ($n < 0) ? -1 : 1;
-	$d = $d < 0? $d *= -1 : $d;
-	my $x = $n * (10**$d);
-	my $r = int(abs($x)+$half);
-	return $sign * ($r / 10**$d) * 1.0; }
 
 sub bankers_round { my ($n, $d) = @_;					# perform banker's round, aka Gaussian round, aka round half to even
 	return undef unless defined $n;
@@ -280,6 +265,5 @@ sub col_width {
 		my $len = length $_[$_] || 0;  			# get length once per item
 		if ($len > $max) { $max = $len; }}		# update max if larger
 	return $max+3>$limit? $limit : $max+3; }	# return the largest width with some padding, up to the limit
-
 
 1;
