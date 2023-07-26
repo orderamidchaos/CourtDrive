@@ -4,9 +4,14 @@ CourtDrive Kroll Web Scraper
 
 =head1 SYNOPSIS
 
-Output a raw JSON file:
+Output raw text:
 
-        perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-ClaimInfo --recursive=100 --format=json > B<2023-07-25.json> &
+        perl kroll_parser.pl --method=GET --url=https://cases.ra.kroll.com/seadrillpartners/Home-ClaimInfo --recursive=100 --debug=3
+        perl kroll_parser.pl --method=POST --url=https://cases.ra.kroll.com/seadrillpartners/Home-LoadClaimData --recursive=100 --debug=3
+
+Output a JSON file:
+
+        perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-LoadClaimData --recursive=100 --format=json > B<2023-07-25.json>
 
 Optionally format the output:
 
@@ -34,7 +39,6 @@ This script combines:
 =over 4
 
 =item B<0> = no debugging output, non-verbose
-
 
 =item B<1> = basic operational output
 
@@ -80,4 +84,6 @@ import a report data tree from a json-formatted file (i.e. the output of I<perl 
 =head1 COPYRIGHT
 
 Copyright 2023
+
+
 
