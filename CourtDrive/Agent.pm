@@ -125,7 +125,7 @@ sub DESTROY { my $self = shift; }
 sub _fetch_page {
 	no warnings 'redefine';
 	my $self = shift || return errlog({}, 500, "CourtDrive::Agent object not initialized.");
-	my $start_time = $self->{debug}? new Benchmark : 0;					# start timing the process
+	my $start_time = new Benchmark;										# start timing the process
 	@UserAgent::ISA = qw /LWP::UserAgent/; 								# subclass LWP::UserAgent to have the browser know about redirects
 	sub UserAgent::redirect_ok {1;}										# redirect both GETS and POSTS
 	my $ua = new UserAgent; 											# create new UserAgent object
@@ -170,7 +170,7 @@ sub _fetch_page {
 	# prompted for a password so we insert the header as is in the request.
 	if ($self->{authorization}) {$request->headers->header(Authorization => $self->{authorization});}
 
-	my $setup_time = $self->{debug}? new Benchmark : 0; 				# time the request setup
+	my $setup_time = new Benchmark;						 				# time the request setup
 
 	# debug info
 	my $req_headers = $request->headers_as_string;
@@ -181,23 +181,22 @@ sub _fetch_page {
 	$self->{report} .= "\n"												if $self->{debug}>1;
 
 	my $response = $ua->request($request);								# send request
-	my $fetch_time = $self->{debug}? new Benchmark : 0;  				# time the fetch
+	my $fetch_time = new Benchmark;										# time the fetch
 	$self->{type} = $response->content_type || "text/html";				# get the content type returned
 
-	if ( $response->is_success ) {										# check the response and read the output
+	if  $response->is_success) {										# check the response and read the output
 		$self->{content} = $response->content;
 		$self->{headers} = $response->headers_as_string; }
 	else {
-		if ( $response->code == 401 ) { return $self->error(401, "Authenticate: ".$response->request->url.", ".$response->www_authenticate); }
+		if ($response->code == 401) { return $self->error(401, "Authenticate: ".$response->request->url.", ".$response->www_authenticate); }
 		else {
 			my $code = $response->code;
 			my $message = $response->message;
-			$self->error($code, $message);	}
-	}
+			$self->error($code, $message); }}
 
 	$self->{location} = $1 if $self->{headers} =~ /Location:(.*?)\n/i;	# get redirect
 
-	my $res_red = scalar($response->is_redirect) ? "yes":"no";
+	my $res_red = scalar($response->is_redirect)? "yes":"no";
 
 	$self->{report} .= "Received response ".($response->code? $response->code : "")." ".($response->message? $response->message : "")."...\n"	if $self->{debug};
 	$self->{report} .= "URL: ".$response->request->url."\n"					if $self->{debug}>1 and $response->request->url;
@@ -209,8 +208,8 @@ sub _fetch_page {
 	$self->{report} .= "RESPONSE_HEADERS: ".$self->{headers}."\n"			if $self->{debug}>1 and $self->{headers};
 	$self->{report} .= "\n"													if $self->{debug}>1;
 
-	my $td_setup = $self->{debug}? timediff($setup_time, $start_time) : 0;
-	my $td_fetch = $self->{debug}? timediff($fetch_time, $setup_time) : 0;
+	my $td_setup = timediff($setup_time, $start_time);
+	my $td_fetch = timediff($fetch_time, $setup_time);
 
 	$self->{report} .= "Benchmarking:\n" .
 	"  SETUP: " . $td_setup->[0] . " wall, " . int(1000*($td_setup->[1]+$td_setup->[2]+$td_setup->[3]+$td_setup->[4]+0.0005))/1000 . " cpu \t-- build the agent/request objects\n" .
