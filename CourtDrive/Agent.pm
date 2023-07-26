@@ -139,6 +139,10 @@ sub _fetch_page {
 	$ua->default_header('Cache-Control' => "no-cache");					# prevent caching of our requests
 	$ua->default_header('Accept-Ranges' => "none");						# prevent chunking
 
+	if ($self->{conf}->{headers}) {										# set custom request headers
+		foreach $header (keys %{$self->{conf}->{headers}}) {
+			$ua->header($header, $self->{conf}->{headers}->{$header}); }}
+
 	# debug info
 	$self->{report} .= "Creating request... \n" 						if $self->{debug};
 	$self->{report} .= "URL: $self->{url} \n" 							if $self->{debug}>1 && $self->{url};

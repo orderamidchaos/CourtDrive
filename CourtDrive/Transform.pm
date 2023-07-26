@@ -4,7 +4,7 @@ package CourtDrive::Transform;
 CourtDrive Data Transformer Module
 
 =head2 SYNOPSIS
-C<< use CourtDrive::Transform qw(coerce strip_junk convert_json convert_pdf convert_xlsx); >>
+C<< use CourtDrive::Transform qw(coerce convert_json convert_pdf convert_xlsx); >>
 
 =head2 DESCRIPTION
 Functions for sanitizing and changing one format to another
