@@ -120,7 +120,7 @@ use CourtDrive::Decode		qw(decode_utf_str encode_url);
 use CourtDrive::Input		qw(get_params get_commandline_options);
 use CourtDrive::Agent		qw(content protocol domain path report error has_error);
 use CourtDrive::Transform	qw(coerce convert_json convert_pdf convert_xlsx);
-use CourtDrive::File 		qw(list_files lock_file read_data);
+use CourtDrive::File 		qw(lock_file read_data);
 
 use constant CONF 		=> read_config(PROGRAM_CONF);			# constant hashref CONF contains all of the configuration info from the PROGRAM_CONF file
 
