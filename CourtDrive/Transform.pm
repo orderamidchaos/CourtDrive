@@ -165,11 +165,11 @@ sub convert_json {						# convert the data structure to JSON format
 ##########################
 
 sub convert_pdf {					# convert an html-formatted string to pdf format
-	my $html = shift; my $error = ""; my $pdf_content;
+	my $str = shift; my $error = ""; my $pdf_content;
 	my $htmldoc = new HTML::HTMLDoc('mode'=>'file', 'tmpdir'=>'/tmp') or $error .= "Couldn't load HTMLDoc: $!\n\n";
 
 	unless ($error) {
-		$htmldoc->set_html_content($html) or $error .= "Couldn't set HTML content: $!\n\n";
+		$htmldoc->set_html_content($str) or $error .= "Couldn't set HTML content: $!\n\n";
 		$htmldoc->set_permissions('annotate', 'print', 'no-modify');
 		$htmldoc->links();
 		$htmldoc->title();
@@ -191,8 +191,8 @@ sub convert_pdf {					# convert an html-formatted string to pdf format
 ###### CONVERT XLSX ######
 ##########################
 
-sub convert_xlsx {	# convert an html-formatted report to xlsx (MS Excel) format
-	my $html = shift; my $error = ""; my $xlsx_content;
+sub convert_xlsx {					# convert an html-formatted string to xlsx (MS Excel) format
+	my $str = shift; my $error = ""; my $xlsx_content;
 
 	my @xlsx_write_error = (
 		"success",
@@ -200,19 +200,19 @@ sub convert_xlsx {	# convert an html-formatted report to xlsx (MS Excel) format
 		"row or column out of bounds",
 		"string too long");
 
-	my $rs = 0; 														# row start index
-	my $re = 0; 														# row end index
+	my $rs = 0; 											# row start index
+	my $re = 0; 											# row end index
 
-	my @colID = ("A".."ZZ"); 											# array to hold up to 52 column letters
+	my @colID = ("A".."ZZ"); 								# array to hold up to 52 column letters
 
-	if (open my $fh, '>', \$xlsx_content) {								# open a filehandle to which to write the Excel document as a string
+	if (open my $fh, '>', \$xlsx_content) {					# open a filehandle to which to write the Excel document as a string
 		binmode $fh; #, ":utf8";
-		my $workbook  = Excel::Writer::XLSX->new( $fh );				# create a new Excel workbook linked to the file handle
+		my $workbook  = Excel::Writer::XLSX->new( $fh );	# create a new Excel workbook linked to the file handle
 		$error .= "Error creating new Excel file: $!" unless defined $workbook;
 		my $worksheet;
 
 		unless ($error) {
-			my $title = $html =~ /<title>(.*?)<\/title>/is? $1 : "";	# fetch the page title if there is one
+			my $title = $str =~ /<title>(.*?)<\/title>/is? $1 : "";	# fetch the page title if there is one
 			$title = substr $title, 0, 31;								# truncate to fit worksheet limits
 			$worksheet = $workbook->add_worksheet( $title );			# create a new worksheet using the title of the report
 			$error .= "Error creating new Excel worksheet: $!" unless defined $worksheet; }
@@ -221,7 +221,7 @@ sub convert_xlsx {	# convert an html-formatted report to xlsx (MS Excel) format
 		$error.= "Error extracting tables from HTML: $!" unless defined $te;
 
 		unless ($error) {
-			$te->parse($html);
+			$te->parse($str);
 			foreach my $table ($te->tables)	{							# insert any tables into the Excel worksheet
 				my $rcount = scalar @{$table->rows};					# count the rows
 				my $ccount = $table->columns; 							# count the columns
