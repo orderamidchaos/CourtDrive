@@ -133,7 +133,7 @@ sub words_or_blank { my ($x) = @_;
 	return "" unless defined $x;
 	return $x=~/[A-Za-z]+?/? $x : ""; }
 
-strip_junk { my ($x) = @_;
+sub strip_junk { my ($x) = @_;
 	$x = "" unless $x;
 	$x =~ s/[^[:print:]]//gs;			# remove non-printable characters
 	$x =~ s/[^\x00-\xB1]/?/g;			# include just the ASCII range
