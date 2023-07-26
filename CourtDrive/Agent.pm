@@ -157,13 +157,13 @@ sub _fetch_page {
 		if (($self->{url} !~ /\?/) && $self->{query_string}) { $self->{query_string} =~ s/(URL|NL|DEBUG)=.*?(?:&|$)//gis; $self->{url} .= "?" . $self->{query_string};}
 		$request = new HTTP::Request GET => $self->{url}; }
 	elsif ($self->{request_method} eq 'POST') {
-		$request = POST $self->{url} , Content => $self->{input} unless $self->{upload};
+		$request = POST $self->{url} , Content => $self->{input} unless defined $self->{upload};
 
-		$self->{input} =~ s/(?:^|&)(.*?)=(.*?)(?=&|$)/$1 => "$2", /gis; $self->{input} =~ s/^(.*?), $/$1/is;
-		my $filename = ($self->{upload} =~ /^(?:.+?)\/([^\/]+?)$/)? $1 : $self->{upload};
-		$request = eval(qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input} ]~) if $self->{upload};
-
-		$self->{report} .= qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input}] if $self->{upload}\n\n~; }
+		if (defined $self->{upload} {
+			$self->{input} =~ s/(?:^|&)(.*?)=(.*?)(?=&|$)/$1 => "$2", /gis; $self->{input} =~ s/^(.*?), $/$1/is;
+			my $filename = ($self->{upload} =~ /^(?:.+?)\/([^\/]+?)$/)? $1 : $self->{upload};
+			$request = eval(qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input} ]~) if $self->{upload};
+			$self->{report} .= qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input}] if $self->{upload}\n\n~; }}
 	else { return $self->error(405,"Unknown request method: " . $self->{request_method}); }
 
 	# if we got an Authorization header, the client is back at it after being
