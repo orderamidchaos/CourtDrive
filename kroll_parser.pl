@@ -6,7 +6,7 @@ use constant PROGRAM_CONF => "kroll_parser.conf";			# the configuration file loc
 # to make dependency installation easy, just run:
 #	PERL_MM_USE_DEFAULT=1 perl -MCPAN -e 'install lazy'
 # then uncomment this line:
-# use lazy 				qw(-g --pp);						# install any missing modules, globally if possible
+use lazy 				qw(-g --pp);						# install any missing modules, globally if possible
 # then the script will auto-install all dependencies the first time you run it
 
 # run "perldoc kroll_parser.pl" or "kroll_parser.pl --help" to read this documentation properly formatted
