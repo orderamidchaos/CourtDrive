@@ -27,12 +27,12 @@ Output raw text:
 
 Output a JSON file:
 
-	perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-LoadClaimData --recursive=100 --format=json > B<2023-07-25.json>
+	perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-LoadClaimData --recursive=100 --format=json > 2023-07-25.json
 
 Optionally format the output:
 
-	perl kroll_parser.pl B<--file=2023-07-25.json> --format=pdf > 2023-07-25.pdf
-	perl kroll_parser.pl B<--file=2023-07-25.json> --format=xlsx > 2023-07-25.xlsx
+	perl kroll_parser.pl --file=2023-07-25.json --format=pdf > 2023-07-25.pdf
+	perl kroll_parser.pl --file=2023-07-25.json --format=xlsx > 2023-07-25.xlsx
 
 =head1 DESCRIPTION
 
@@ -84,11 +84,11 @@ follow links to nested HTML pages to this depth (defaults to zero/false)
 
 =item B<--format>=I<html>
 
-format of the report output -- options include txt, json, html, pdf, and xlsx
+format of the output -- options include txt, json, html, pdf, and xlsx
 
 =item B<--file>=I<report.json>
 
-import a report data tree from a json-formatted file (i.e. the output of I<perl kroll_parser.pl --format=json>), enabling multiple calculation and viewing options on the same data
+import a data tree from a json-formatted file (i.e. the output of I<perl kroll_parser.pl --format=json>), enabling multiple calculation and viewing options on the same data
 
 =back
 
