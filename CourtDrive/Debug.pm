@@ -1,7 +1,7 @@
 package CourtDrive::Debug;
 
 =head1 NAME
-CourtDrive Book Download Log Analyzer Debugging
+CourtDrive Debugging Module
 
 =head2 SYNOPSIS
 C<< use CourtDrive::Debug qw(debug_type end_debug_type debug errlog is_array is_hash is_scalar is_null is_empty check_data check_conf get_sub_name get_sub_chain); >>
