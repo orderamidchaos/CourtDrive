@@ -1,0 +1,83 @@
+=head1 NAME
+
+CourtDrive Kroll Web Scraper
+
+=head1 SYNOPSIS
+
+Output a raw JSON file:
+
+        perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-ClaimInfo --recursive=100 --format=json > B<2023-07-25.json> &
+
+Optionally format the output:
+
+        perl kroll_parser.pl B<--file=2023-07-25.json> --format=pdf > 2023-07-25.pdf
+        perl kroll_parser.pl B<--file=2023-07-25.json> --format=xlsx > 2023-07-25.xlsx
+
+=head1 DESCRIPTION
+
+This script combines:
+
+=over 4
+
+=item * a web client which performs HTTP requests on behalf of a user
+
+=item * a parser to find all claims in the scraped HTML and relevant meta data and build a tree
+
+=back
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--debug>=I<N>
+
+=over 4
+
+=item B<0> = no debugging output, non-verbose
+
+
+=item B<1> = basic operational output
+
+=item B<2> = technical debugging info
+
+=item B<3> = in-depth debugging info
+
+=back
+
+=item B<--noverbose>
+
+equivalent to debug=0
+
+=item B<--verbose>
+
+equivalent to debug=1
+
+*note* make the debug or verbose option first to get debugging output on the remaining options
+
+=item B<--url>=I<http://domain/path/to/scrape/>
+
+this URL will be scraped for data
+
+=item B<--recursive>=I<N>
+
+follow links to nested HTML pages to this depth (defaults to zero/false)
+
+=item B<--format>=I<html>
+
+format of the report output -- options include txt, json, html, pdf, and xlsx
+
+=item B<--file>=I<report.json>
+
+import a report data tree from a json-formatted file (i.e. the output of I<perl kroll_parser.pl --format=json>), enabling multiple calculation and viewing $
+
+=back
+
+=head1 AUTHOR
+
+        Thomas Anderson
+        tanderson@orderamidchaos.com
+
+=head1 COPYRIGHT
+
+Copyright 2023
+
