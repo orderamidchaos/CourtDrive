@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+use 5.14.0; use strict;
 
 # this is the only stuff anyone should need to possibly change in this file
 use constant PROGRAM_CONF => "kroll_parser.conf";			# the configuration file location relative to the present working directory
@@ -171,7 +172,7 @@ else {
 	$data->{format} = $data->{format}? $data->{format} : 'txt';			# default output format
 
 if ($data->{format} eq 'txt' or $data->{format} eq 'html' or $data->{debug_level}) {
-	say "Found ".$data->{claim_count}." claims at ".$data->{url}.($data->{recursive}? ", recursively" : "");
+	say "Found ".(scalar @{$data->{items}->{claims}}? scalar @{$data->{items}->{claims}} : 0)." claims at ".$data->{url}.($data->{recursive}? ", recursively" : "");
 	say "Total time to scrape and analyze: ".$data->{wall_time}."s wall, ".$data->{cpu_time}."s cpu";
 	say "Results: ".Dumper($data->{items}); }
 if ($data->{format} eq 'json')	{ say convert_json($data->{items}); }
