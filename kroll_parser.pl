@@ -234,52 +234,48 @@ sub get_claims {												# get_claims subroutine scrapes the given URL for cl
 				my $label = $2; my $value = $3;
 				if ($value =~ /<a onclick="ShowClaims(.+?)"[^>]*?>(.+?)[^>]*?<\/a>/) {
 						my $claim_id = $1; $value = $2;
-							my $claim_url = $agent->protocol . $agent->domain . $agent->path . "/Home-CreditorDetailsForClaim";
 							my $claim_params = "id=".encode_url($claim_id);
-							my $claim_method = "POST";
-							get_claim_details($claim, $claim_method, $claim_url, $claim_params); }
+							get_claim_details($claim, '', '', $claim_params); } # use default method & url defined in function
 				$claim->{$label} = $value; }
 			push @{$claims}, $claim unless is_empty($claim); }
 
-		if ($lvl < $total_pages and $lvl < $max) {		# iterate through the pages until completed
-				$url = $agent->protocol . $agent->domain . $agent->path . "/Home-LoadClaimData";
+		if ($lvl < $total_pages and $lvl < $max) {						# iterate through the pages until completed
+				$url = $agent->protocol . $agent->domain . $agent->path . "/Home-LoadClaimData";	# path to load additional pages of data
+				$method = "POST";																	# POST to include AJAX params sent via JS (params defined in CONF)
 				debug($data, "$lvl: following: $url to page ".($lvl+1)." (current level $lvl, authorized recursion $max)", 2);
 				my $deeper_claims = get_claims($method, $url, $lvl+1);
 				$claims = $merge->merge($claims, $deeper_claims) unless is_empty($deeper_claims);
 		}}
 	elsif ($agent->content_type =~ /application\/json/i and !$agent->has_error) {	# parse JSON output
 		my $content_json = decode_json $content or return errlog($data, "URL $url cannot be decoded as JSON.");
-		my $lvl = 1;															# start counting how many pages we parse in order to impose the configured limits
 		my $total_pages = $content_json->{total}? $content_json->{total} : 1;		# figure out how many pages of claims there are
 
-		foreach my $claim_row (@{$content_json->{rows}}) {										# iterate over the claim rows
+		foreach my $claim_row (@{$content_json->{rows}}) {							# iterate over the claim rows
 			my $claim = {}; $claim->{amounts} = [];
-			foreach my $column (keys %{$claim_row}) {											# iterate over the columns
+			foreach my $column (keys %{$claim_row}) {								# iterate over the columns
 				$claim_row->{$column} = decode_utf_str($claim_row->{$column});
 				if ($claim_row->{$column} =~ /
-						.+?class="tablesaw-cell-label">(.+?)<\/[^>]+?>							# match a data label	(group 1)
-						.+?class="tablesaw-cell-content">(.+?)<\/[^>]+?>						# match data content	(group 2)
+						.+?class="tablesaw-cell-label">(.+?)<\/[^>]+?>				# match a data label	(group 1)
+						.+?class="tablesaw-cell-content">(.+?)<\/[^>]+?>			# match data content	(group 2)
 						/isx) {
 					my $label = $1; my $value = $2;
 					if ($value =~ /<a onclick="ShowClaims(.+?)"[^>]*?>(.+?)[^>]*?<\/a>/) {
 							my $claim_id = $1; $value = $2;
-							my $claim_url = $agent->protocol . $agent->domain . $agent->path . "/Home-CreditorDetailsForClaim";
 							my $claim_params = "id=".encode_url($claim_id);
-							my $claim_method = "POST";
-							get_claim_details($claim, $claim_method, $claim_url, $claim_params); }
+							get_claim_details($claim, '', '', $claim_params); }		# use default method & url defined in function
 					$claim->{$label} = $value; }
 				else { $claim->{$column} = $claim_row->{$column}}}
 			push @{$claims}, $claim unless is_empty($claim); }
 
-		if ($lvl < $total_pages and $lvl < $max) {				# iterate through the pages until completed
+		if ($lvl < $total_pages and $lvl < $max) {									# iterate through the pages until completed
 				debug($data, "$lvl: following: $url to page ".($lvl+1)." (current level $lvl, authorized recursion $max)", 2);
 				my $deeper_claims = get_claims($method, $url, $lvl+1);
 				$claims = $merge->merge($claims, $deeper_claims) unless is_empty($deeper_claims);
 		}}
 	else { errlog($data, "URL $url could not be parsed."); }
 
-	my $end_time = new Benchmark;								# calculate total running time
-	my $td = timediff($end_time, $start_time);					# calculate benchmarking info
+	my $end_time = new Benchmark;													# calculate total running time
+	my $td = timediff($end_time, $start_time);										# calculate benchmarking info
 	debug($data, "Found ".(scalar @{$claims})." claims at this level, depth $lvl", 2);
 	debug($data, "Total time to scrape: ".$td->[0]." wall, ". int(1000*($td->[1]+$td->[2]+$td->[3]+$td->[4]+0.0005))/1000 ." cpu", 2);
 
@@ -290,6 +286,9 @@ sub get_claim_details {											# get_claims subroutine scrapes the given URL 
 	my $method = shift;											# HTTP method for claim details
 	my $url = shift;											# URL for the claim details
 	my $params = shift;											# POST parameters
+
+	my $url = $agent->protocol . $agent->domain . $agent->path . "/Home-CreditorDetailsForClaim" if is_empty($url);
+	my $method = "POST" if is_empty($method);
 
 	# initialize the user agent and fetch the page
 	my $agent = CourtDrive::Agent->new(CONF, $method, $url, $params, $data->{debug_level}) or errlog($data, CourtDrive::Agent->error);
