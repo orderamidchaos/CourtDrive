@@ -139,10 +139,6 @@ sub _fetch_page {
 	$ua->default_header('Cache-Control' => "no-cache");					# prevent caching of our requests
 	$ua->default_header('Accept-Ranges' => "none");						# prevent chunking
 
-	if ($self->{conf}->{headers}) {										# set custom request headers
-		foreach my $header (keys %{$self->{conf}->{headers}}) {
-			$ua->header($header, $self->{conf}->{headers}->{$header}); }}
-
 	# debug info
 	$self->{report} .= "Creating request... \n" 						if $self->{debug};
 	$self->{report} .= "URL: $self->{url} \n" 							if $self->{debug}>1 && $self->{url};
@@ -169,6 +165,10 @@ sub _fetch_page {
 			$request = eval(qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input} ]~) if $self->{upload};
 			$self->{report} .= qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input}] if $self->{upload}\n\n~; }}
 	else { return $self->error(405,"Unknown request method: " . $self->{request_method}); }
+
+	if ($self->{conf}->{headers}) {										# set custom request headers
+		foreach my $header (keys %{$self->{conf}->{headers}}) {
+			$request->headers->header($header => $self->{conf}->{headers}->{$header}); }}
 
 	# if we got an Authorization header, the client is back at it after being
 	# prompted for a password so we insert the header as is in the request.
