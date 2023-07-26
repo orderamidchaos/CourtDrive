@@ -237,7 +237,7 @@ sub get_claims {												# get_claims subroutine scrapes the given URL for cl
 				$url = $agent->protocol . $agent->domain . $agent->path . "/Home-LoadClaimData";
 				debug($data, "$lvl: following: $url to page ".($lvl+1)." (current level $lvl, authorized recursion $max)", 2);
 				my $deeper_claims = get_claims($url, $lvl+1);
-				$claims = $merge->merge($claims, $deeper_claims) if unless is_empty($deeper_claims);
+				$claims = $merge->merge($claims, $deeper_claims) unless is_empty($deeper_claims);
 		}}
 	elsif ($agent->content_type =~ /application\/json/i and !$agent->has_error) {	# parse JSON output
 		my $content_json = decode_json $content or return errlog($data, "URL $url cannot be decoded as JSON.");
@@ -265,7 +265,7 @@ sub get_claims {												# get_claims subroutine scrapes the given URL for cl
 		if ($lvl < $total_pages and $lvl < $max) {				# iterate through the pages until completed
 				debug($data, "$lvl: following: $url to page ".($lvl+1)." (current level $lvl, authorized recursion $max)", 2);
 				my $deeper_claims = get_claims($url, $lvl+1);
-				$claims = $merge->merge($claims, $deeper_claims) if unless is_empty($deeper_claims);
+				$claims = $merge->merge($claims, $deeper_claims) unless is_empty($deeper_claims);
 		}}
 	else { errlog($data, "URL $url could not be parsed."); }
 
@@ -307,7 +307,7 @@ sub get_claim_details {											# get_claims subroutine scrapes the given URL 
 					//isx) {											# consume the HTML so eventually the while loop exits
 			my $amount_row = $2;
 			my $amount = {};
-			while 														# fetch any columns within the row
+			while (														# fetch any columns within the row
 				$amount_row =~ s/(?:<(td) role="gridcell"[^>]*?>)		# match an opening column tag					(group 1)
 					.+?class="tablesaw-cell-label">(.+?)<\/[^>]+?>		# match a data label							(group 2)
 					.+?class="tablesaw-cell-content">(.+?)<\/[^>]+?>	# match data content							(group 3)
