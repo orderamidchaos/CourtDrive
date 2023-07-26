@@ -31,7 +31,7 @@ use CourtDrive::Debug 	qw(debug errlog is_array is_hash is_scalar is_null is_emp
 
 # export public subroutine symbols
 use Exporter			qw(import);
-our @EXPORT_OK =		qw(coerce strip_junk convert_json convert_pdf convert_xlsx);
+our @EXPORT_OK =		qw(coerce convert_json convert_pdf convert_xlsx);
 
 my $half = 0.50000000000008;	# as per Math::Round, this is the lowest value that gives acceptable results
 
@@ -132,13 +132,6 @@ sub printable_or_blank { my ($x) = @_;
 sub words_or_blank { my ($x) = @_;
 	return "" unless defined $x;
 	return $x=~/[A-Za-z]+?/? $x : ""; }
-
-sub strip_junk { my ($x) = @_;
-	$x = "" unless $x;
-	$x =~ s/[^[:print:]]//gs;			# remove non-printable characters
-	$x =~ s/[^\x00-\xB1]/?/g;			# include just the ASCII range
-	$x =~ s/\s+/ /gs;					# reduce multiple spaces to one space
-	return $x; }
 
 ##########################
 ###### CONVERT JSON ######

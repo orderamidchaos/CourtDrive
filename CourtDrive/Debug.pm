@@ -24,11 +24,10 @@ use JSON::XS;
 # load CourtDrive perl modules and import symbols into the namespace
 use CourtDrive::Config		qw(read_config);
 use CourtDrive::File		qw(append_file);
-use CourtDrive::Transform	qw(strip_junk);
 
 # export public subroutine symbols
 use Exporter				qw(import);
-our @EXPORT_OK =			qw(debug_type end_debug_type debug errlog is_array is_hash is_scalar is_null is_empty check_conf check_data get_sub_name get_sub_chain);
+our @EXPORT_OK =			qw(debug_type end_debug_type debug errlog is_array is_hash is_scalar is_null is_empty check_conf check_data get_sub_name get_sub_chain strip_junk);
 
 sub debug_type { my ($data, $type) = @_;	 # don't log anything if the types don't match
 	my ($transaction, $line) = get_sub_name(2);
@@ -227,5 +226,12 @@ sub get_sub_chain {	# returns the chain of the calling subroutines
 		$x++; }
 	$caller = $reverse? $caller."<-main" : "main".$caller;
 	return $caller; }
+
+sub strip_junk { my ($x) = @_;
+	$x = "" unless $x;
+	$x =~ s/[^[:print:]]//gs;			# remove non-printable characters
+	$x =~ s/[^\x00-\xB1]/?/g;			# include just the ASCII range
+	$x =~ s/\s+/ /gs;					# reduce multiple spaces to one space
+	return $x; }
 
 1;
