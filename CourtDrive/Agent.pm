@@ -159,7 +159,7 @@ sub _fetch_page {
 	elsif ($self->{request_method} eq 'POST') {
 		$request = POST $self->{url} , Content => $self->{input} unless defined $self->{upload};
 
-		if (defined $self->{upload} {
+		if (defined $self->{upload}) {
 			$self->{input} =~ s/(?:^|&)(.*?)=(.*?)(?=&|$)/$1 => "$2", /gis; $self->{input} =~ s/^(.*?), $/$1/is;
 			my $filename = ($self->{upload} =~ /^(?:.+?)\/([^\/]+?)$/)? $1 : $self->{upload};
 			$request = eval(qq~POST "$self->{url}", Content_Type => 'form-data', Content => [ upload => ["$self->{upload}", "$filename"], $self->{input} ]~) if $self->{upload};
