@@ -35,7 +35,7 @@ our @EXPORT_OK =		qw(coerce strip_junk convert_json convert_pdf convert_xlsx);
 
 sub coerce {													# replaces a string with the type specified or the passed-in default value if none
 	my ($x, $type, $default, $len1, $len2, $round, $name) = @_;	# truncates it to the length indicated by the optional fourth value passed in
-	my $default_defined = 0; my $xo; my $do;					# if a decimal, also truncates the decimal part by the fifth value
+	my $default_defined = 0; 									# if a decimal, also truncates the decimal part by the fifth value
 
 	$default = printable_or_blank($default);
 
@@ -60,14 +60,14 @@ sub coerce {													# replaces a string with the type specified or the pass
 
 	$type = 'str' if $type =~ /^(html|report|url_encoded|ssn|fein|zip|password|csv|pipe-delim)/;
 
-	$x = printable_or_blank($x)			if $type =~ /^(print|str)/;
-	$x = words_or_blank($x)				if $type =~ /^word/;
-	$x = num_or_undef($x, $len1)			if $type =~ /^(num|int)/;
-	$x = dec_or_undef($x, $len1, $len2, $round)	if $type =~ /^(dec|money)/;
-	$x = date_or_undef($x)				if $type =~ /^date/;
+	$x = printable_or_blank($x)						if $type =~ /^(print|str)/;
+	$x = words_or_blank($x)							if $type =~ /^word/;
+	$x = num_or_undef($x, $len1)					if $type =~ /^(num|int)/;
+	$x = dec_or_undef($x, $len1, $len2, $round)		if $type =~ /^(dec|money)/;
+	$x = date_or_undef($x)							if $type =~ /^date/;
 	$x = ((is_scalar($x) and $x) or
-	      (!is_scalar($x) and !is_empty($x)))? 1:0	if $type =~ /^bool/;				# booleans are true for non-empty hashes or arrays or true scalars
-	$x = $x						if $type =~ /^(hash|array)/;			# do not modify hashes or arrays with coerce although this function may receive hash or array types from get_cgi_params
+	      (!is_scalar($x) and !is_empty($x)))? 1:0	if $type =~ /^bool/;			# booleans are true for non-empty hashes or arrays or true scalars
+	$x = $x											if $type =~ /^(hash|array)/;	# do not modify hashes or arrays with coerce although this function may receive hash or array types from get_cgi_params
 
 	my $return = (defined $x and !is_null($x) and ($x or ($type =~ /(num|int|dec|money)/ and is_zero($x)) or ($type =~ /(print|word|str)/ and !is_blank($x))))? $x : $default;
 
@@ -142,12 +142,10 @@ strip_junk { my ($x) = @_;
 ###### CONVERT JSON ######
 ##########################
 
-sub convert_json { # convert the data structure to JSON format
-	my ($data) = @_;
-	my $json_utf8_text = "";
-	my $error = "";
+sub convert_json {						# convert the data structure to JSON format
+	my $data = shift; my $json_utf8_text = "";
 
-	local $@; # protect existing $@ error string outside this scope
+	local $@;							# protect existing $@ error string outside this scope
 	local $SIG{__DIE__} = 'DEFAULT';
 
 	try {
@@ -155,7 +153,7 @@ sub convert_json { # convert the data structure to JSON format
 		$json->utf8(1)->pretty(1);
 		$json_utf8_text = $json->encode($data); }
 	catch {
-		$error .= "JSON::XS->new->utf8->encode() failed: $_\n$json_utf8_text";
+		my $error = "JSON::XS->new->utf8->encode() failed: $_\n$json_utf8_text";
 		if ($error =~ /maximum nesting level/) { $error .= "dumping data: ".(Dumper $data); }
 		return $error; }
 	finally {
@@ -166,7 +164,7 @@ sub convert_json { # convert the data structure to JSON format
 ####### CONVERT PDF ######
 ##########################
 
-sub convert_pdf {	# convert an html-formatted report to pdf format
+sub convert_pdf {					# convert an html-formatted string to pdf format
 	my $html = shift; my $error = ""; my $pdf_content;
 	my $htmldoc = new HTML::HTMLDoc('mode'=>'file', 'tmpdir'=>'/tmp') or $error .= "Couldn't load HTMLDoc: $!\n\n";
 
