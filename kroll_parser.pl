@@ -20,9 +20,13 @@ CourtDrive Kroll Web Scraper
 
 =head1 SYNOPSIS
 
-Output a raw JSON file:
+Output raw text:
 
-	perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-ClaimInfo --recursive=100 --format=json > B<2023-07-25.json> &
+	perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-LoadClaimData --recursive=100
+
+Output a JSON file:
+
+	perl kroll_parser.pl --url=https://cases.ra.kroll.com/seadrillpartners/Home-LoadClaimData --recursive=100 --format=json > B<2023-07-25.json>
 
 Optionally format the output:
 
@@ -148,7 +152,7 @@ get_commandline_options($data,									# parse the command line options and retu
 errlog($data, $data->{error}) if $data->{error};				# report any errors getting command line options
 
 pod2usage({-verbose => 2, -exitval => 1}) if $data->{help};
-pod2usage({-verbose => 2, -exitval => 2, -message => "You must either pass in a URL to scan or a pre-compiled JSON file."}) unless $data->{file} or $data->{url};
+#pod2usage({-verbose => 2, -exitval => 2, -message => "You must either pass in a URL to scan or a pre-compiled JSON file."}) unless $data->{file} or $data->{url};
 
 ##########################
 ########## MAIN ##########
@@ -163,6 +167,7 @@ if ($data->{file}) {
 	debug($data, "Merged data object: ".Dumper($data), 1); }
 else {
 	my $start_time = new Benchmark;										# start timing the entire scraping process
+	$data->{url} = CONF->{urls}->[0] unless $data->{url};				# default to the first configured URL if none passed in
 	$data->{items}->{claims} = get_claims();							# parse the url for claims and return the results to $data->{items}
 	my $end_time = new Benchmark;										# calculate total running time for scraping URLs and parsing
 	my $td = timediff($end_time, $start_time);							# calculate benchmarking info
@@ -186,16 +191,14 @@ if ($data->{format} eq 'xlsx')	{ binmode STDOUT; say convert_xlsx($data->{items}
 sub get_claims {												# get_claims subroutine scrapes the given URL for claims
 	my $url = shift || $data->{url} || return "";				# pass in the URL to scrape or get it from $data
 	my $lvl = coerce(shift, "num", 1);							# start counting depth of recursion in order to impose the configured limits
-	my $max = coerce($data->{recursive}, "num", "zero");
-
-	# only follow down to the depth of the recursion specified or max limit
-	$max = CONF->{thresholds}->{MAX_LINKS} if $max > CONF->{thresholds}->{MAX_LINKS};
-	if ($lvl > $max) { debug($data, "Reached maximum recursion depth = ".$max, 1); return []; }
+	my $max = coerce($data->{recursive}, "num", CONF->{thresholds}->{MAX_LINKS});
 
 	my $claims = []; 											# create an arrayref to hold the list of claims discovered in the HTML
 	my $start_time = new Benchmark;								# start timing the website scraping process
 	my $params = CONF->{params};								# load the parameters specified in the configuration file
 	$params->{page} = $lvl if $lvl;								# increment the page number if passed in
+
+	if ($lvl > $max) { debug($data, "Reached maximum recursion depth = ".$max, 1); return $claims; }	# only follow down to the depth of the recursion specified
 
 	# initialize the user agent and fetch the page
 	my $agent = CourtDrive::Agent->new(CONF, $url, complex_to_flat($params), $data->{debug_level}) or errlog($data, CourtDrive::Agent->error);
