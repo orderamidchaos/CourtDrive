@@ -33,6 +33,8 @@ use CourtDrive::Debug 	qw(debug errlog is_array is_hash);
 use Exporter			qw(import);
 our @EXPORT_OK =		qw(coerce strip_junk convert_json convert_pdf convert_xlsx);
 
+my $half = 0.50000000000008;	# as per Math::Round, this is the lowest value that gives acceptable results
+
 sub coerce {													# replaces a string with the type specified or the passed-in default value if none
 	my ($x, $type, $default, $len1, $len2, $round, $name) = @_;	# truncates it to the length indicated by the optional fourth value passed in
 	my $default_defined = 0; 									# if a decimal, also truncates the decimal part by the fifth value
