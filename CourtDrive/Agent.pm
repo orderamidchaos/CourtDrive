@@ -184,7 +184,7 @@ sub _fetch_page {
 	my $fetch_time = new Benchmark;										# time the fetch
 	$self->{type} = $response->content_type || "text/html";				# get the content type returned
 
-	if  $response->is_success) {										# check the response and read the output
+	if ($response->is_success) {										# check the response and read the output
 		$self->{content} = $response->content;
 		$self->{headers} = $response->headers_as_string; }
 	else {
