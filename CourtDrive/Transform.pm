@@ -145,9 +145,6 @@ strip_junk { my ($x) = @_;
 sub convert_json {						# convert the data structure to JSON format
 	my $data = shift; my $json_utf8_text = "";
 
-	local $@;							# protect existing $@ error string outside this scope
-	local $SIG{__DIE__} = 'DEFAULT';
-
 	try {
 		my $json = new JSON::XS;
 		$json->utf8(1)->pretty(1);
