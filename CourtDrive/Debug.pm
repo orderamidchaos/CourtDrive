@@ -24,6 +24,7 @@ use JSON::XS;
 # load CourtDrive perl modules and import symbols into the namespace
 use CourtDrive::Config		qw(read_config);
 use CourtDrive::File		qw(append_file);
+use CourtDrive::Transform	qw(strip_junk);
 
 # export public subroutine symbols
 use Exporter				qw(import);
